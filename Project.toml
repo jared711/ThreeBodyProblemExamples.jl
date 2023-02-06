@@ -1,0 +1,13 @@
+name = "ThreeBodyProblemExamples"
+uuid = "f91ee894-56f0-4753-ac57-7db0881330f4"
+authors = ["Jared Blanchard"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
