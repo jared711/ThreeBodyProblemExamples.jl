@@ -7,3 +7,6 @@ PolynomialRoots = "3a141323-8675-5d76-9d11-e1df1406c778"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 ThreeBodyProblem = "f5e9ba3c-56cf-4230-8a8f-3a70500a02a9"
+
+[compat]
+julia = "1.6"
