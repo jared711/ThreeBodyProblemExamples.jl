@@ -1,6 +1,6 @@
 # ThreeBodyProblemExamples
 
-[![Build Status](https://github.com/jared711/ThreeBodyProblemExamples.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jared711/ThreeBodyProblemExamples.jl/actions/workflows/CI.yml?query=branch%3Amain)
+<!---[![Build Status](https://github.com/jared711/ThreeBodyProblemExamples.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/jared711/ThreeBodyProblemExamples.jl/actions/workflows/CI.yml?query=branch%3Amain)-->
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jared711/ThreeBodyProblemExamples.jl/main)
 
 # ThreeBodyProblemExamples
@@ -17,10 +17,5 @@ using IJulia
 notebook(dir=".",detached=true)
 ```
 
-You can also run the Jupyter notebooks on your browser through binder. Just click the binder icon
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jared711/ThreeBodyProblemExamples.jl/main) and wait for a JupyterLab window to appear. It may take a few minutes to load. Eventually this window should appear.
-![image](https://user-images.githubusercontent.com/25643720/216104189-4d60e01b-dc72-4946-b72f-0d774bd78187.png)
-Pick the Jupyter notebook (filetype .ipynb) you want to run. Pressing CTRL+ENTER will run a block of code, while SHIFT+ENTER will run a block and move to the next one.
-
-Check out the documentation or the source code itself for more tips.
-
+You can also run the Jupyter notebooks on your browser through binder. Just click the binder icon [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jared711/ThreeBodyProblemExamples.jl/main)
+and wait for a JupyterLab window to appear. It may take a few minutes to load. Pick the Jupyter notebook (filetype .ipynb) you want to run from the menu on the left. Pressing CTRL+ENTER will run a block of code, while SHIFT+ENTER will run a block and move to the next one.
