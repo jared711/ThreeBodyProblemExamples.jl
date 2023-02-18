@@ -49,3 +49,36 @@ prob = ODEProblem(CR3BPdynamics!, rv, tspan, sys) # create an ODEProblem
 sol = solve(prob, TsitPap8(), reltol=1e-12, abstol=1e-12) # solve the ODEProblem
 plot(sol, idxs=(1,2), xlabel="x [NON]", ylabel="y [NON]", label="Trajectory") # plot the solution
 plot!(sys, lims=(-1.1,1.1)) # plot the CR3BP system
+
+## Lunar Return Trajectory
+# Let's compute a trajectory similar to that used by the Apollo missions. First we declare the parameters that describe the Earth-Moon system.
+μ₁ = 398600 # {km³/s²} gravitational parameter of Earth
+μ₂ = 4903   # {km³/s²} gravitational parameter of the Moon
+d = 384400  # {km} average distance between Earth and the Moon
+
+p = [μ₁, μ₂, d] # concatenate the parameters into one array
+
+# We'll use the p vector so we can practice feeding that into the ODEProblem. Now let's define the initial condition of our spacecraft.
+h = 200.0           # {km} altitude of parking orbit
+vᵢ = 10.92367104    # {km/s} injection velocity in rotating frame
+ϕ = 47.70061087     # {°} injection angle, measured from +y
+
+Rₑ = 6378.0 # {km} radius of the Earth
+Rₘ = 1738.0 # {km} radius of the Moon
+d₁,d₂ = computed1d2(p) # {km} distances of Primary and Secondary bodies from origin
+rₑ = [-d₁, 0, 0] # {km} position of the Earth
+r₀ = rₑ + [-(Rₑ + 200)*cosd(ϕ); -(Rₑ + 200)*sind(ϕ); 0] # initial position of spacecraft in rotating frame
+v₀ = vᵢ*[sind(ϕ); -cosd(ϕ); 0]; # initial velocity of spacecraft in rotating frame
+rv₀ = [r₀;v₀] # {km; km/s} our initial state 
+
+### Integrate the trajectory
+tspan = (0.,86400*6.) # {sec} 6 day span
+prob = ODEProblem(CR3BPdynamics!, rv₀, tspan, p) # CR3BPdynamics! is our in-place dynamics function
+sol = solve(prob, TsitPap8(), reltol=1e-6);
+
+p_lun = plot(sol,vars=(1,2),title="Lunar return trajectory in rotating frame",label="Trajectory")
+plot!(p_lun, circle(Rₑ,[-d₁;0]),color="blue",label="Earth")
+plot!(p_lun, circle(Rₘ,[d₂;0]),color="gray",label="Moon",aspect_ratio=:equal)
+
+# We can use the animate() function to show the motion in time.
+animate(sol,vars=(1,2),title="Lunar return trajectory in rotating frame",label="Trajectory")

@@ -7,8 +7,39 @@
 ### We'll work in the Earth-Moon system because the mass parameter is relatively large
 sys = earth_moon() # earth-moon system
 
+## Augmented Potential Ω
+# A potential function depends only on position. At the center of the planets, the potential function is infinite (i.e. has a singularity). In the rotating frame, we have to add terms to account for the centrifugal force, giving us
+# \begin{align}
+# \Omega = \frac{(x^2 + y^2)}{2}n^2 + \frac{1-\mu}{r_1} + \frac{μ}{r_2}\\
+# \end{align}
+# where
+# \begin{align}
+# r_1 = \sqrt{(x+\mu)^2 + y^2 + z^2}\\
+# r_2 = \sqrt{(x-1+\mu)^2 + y^2 + z^2}.
+# \end{align}
+# Note that we define the mean motion $n=1$ in the normalized coordinates.
+
+# Let's compute the augmented potential on a grid of the CR3BP.
+N = 100 # using 100 sample points in each direction
+X = range(-1.5,1.5,length=N) # range of x values
+Y = range(-1,1,length=N) # range of y values
+
+p_contour = plot() # plot for potential contours
+f(x,y) = -computeΩ([x,y,0,0,0,0], sys) # negative effective potential (also -computeUeff(r, sys))
+
+plot!(p_contour, sys, title="Potential Contours", xlabel="x [NON]", ylabel="y [NON]", legend=:bottomright) # plot the system
+
+levels = -exp10.(range(2,0,length=100)); # levels for contour plot
+contour!(p_contour,X,Y,f,levels=levels,fill=false,c = :blues) # plot the contours
+# We can see that L1 and L2 lie at saddle points. L3 also is at a saddle point although it is less apparent.
+
 ## Jacobi Constant
-# In the CR3BP there is only one conserved quantity, the Jacobi constant C. It is related to the mechanical energy, only it is computed in the rotating frame. The Jacobi constant is a function of the state vector, and it is a constant of motion. Here we'll show how to compute the Jacobi constant expicitly then point you to the functions that do it for you.
+# In the CR3BP there is only one conserved quantity, the Jacobi constant C.
+# \begin{align}
+# C &= (x^2 + y^2) + 2\frac{1-\mu}{r_1} + 2\frac{\mu}{r_2} - \left(\dot{x}^2+\dot{y}^2+\dot{z}^2\right)\\ 
+# C &= 2\Omega - v^2.
+# \end{align}
+# It is related to the mechanical energy, only it is computed in the rotating frame. The Jacobi constant is a function of the state vector, and it is a constant of motion. Here we'll show how to compute the Jacobi constant expicitly then point you to the functions that do it for you.
 
 ### First, let's define some initial conditions
 x = 0.5;    y = 0;      z = 0; # position components
