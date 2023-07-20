@@ -4,7 +4,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jared711/ThreeBodyProblemExamples.jl/main)
 
 # ThreeBodyProblemExamples
-This repository contains helpful examples, both in Julia scripts and Jupyter notebooks for working with ThreeBodyProblem.jl.
+This repository contains helpful examples, both in Julia scripts and Jupyter notebooks for working with [ThreeBodyProblem.jl](https://github.com/jared711/ThreeBodyProblem.jl).
 If you are brand new to the package, go through the examples in order to get a feel for how everything works.
 There are some elements of the package that are not included in the examples, but can be found in the documentation.
 Each example has a .jl file and a .ipynb file. The .jl file can be run line by line in your favorite IDE while the .ipynb file is a Jupyter notebook.
