@@ -3,7 +3,7 @@
 
 ### The first step is to import the ThreeBodyProblem and OrdinaryDiffEq packages. We'll also use Plots. 
 @time using ThreeBodyProblem
-@time using OrdinaryDiffEq
+@time using DifferentialEquations
 @time using LinearAlgebra
 @time using Plots
 
@@ -18,15 +18,18 @@ t = 0 # time at which to evaluate the dynamics
 rvdot = CR3BPdynamics(rv, μ, t) # time derivative of initial conditions
 
 # We can also give it a vector of paramters p = [μ₁, μ₂, d]
+# Note that these are dimensional parameters, not non-dimensional.
 μ₁ = G*EARTH.m # {km^3/s^2} gravitational parameter of Earth
 μ₂ = G*MOON.m # {km^3/s^2} gravitational parameter of the Moon
 d = MOON.a # {km} distance between Earth and Moon
 p = [μ₁, μ₂, d] # parameter vector
+rv = [1.5e5, 0, 0, 0, 10, 0] # initial conditions in dimensional units {km and km/s}
 rvdot = CR3BPdynamics(rv, p, t) # time derivative of initial conditions
 
 # But the easiest way is to input a system
 sys = earth_moon() # create a CR3BP system of the Earth and Moon
-rvdot = CR3BPdynamics(rv, p, t) # initial conditions
+rv = [0.5, 0, 0, 0, 1, 0] # initial conditions in non-dimensional units
+rvdot = CR3BPdynamics(rv, sys, t) # initial conditions
 
 # Note that the CR3BP is autonomous, so time doesn't appear in the equations of motion
 CR3BPdynamics(rv, sys, t) == CR3BPdynamics(rv, sys, 10*t) ? "The time derivatives are equal" : "The time derivatives are not equal"

@@ -1,7 +1,7 @@
 # Plotting the Forbidden Region
 # We'll show how to compute the Jacobi Constant and use it to constrain our system
 @time using ThreeBodyProblem
-@time using OrdinaryDiffEq
+@time using DifferentialEquations.OrdinaryDiffEq
 @time using Plots
 
 ### We'll work in the Earth-Moon system because the mass parameter is relatively large

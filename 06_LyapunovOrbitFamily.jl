@@ -2,7 +2,7 @@
 # In this notebook, we'll learn how to use differential correction to compute a Lyapunov Orbit. Then we'll use continuation techniques to compute an entire family
 
 @time using ThreeBodyProblem
-@time using OrdinaryDiffEq
+@time using DifferentialEquations.OrdinaryDiffEq
 @time using LinearAlgebra
 @time using Plots
 

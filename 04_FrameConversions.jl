@@ -2,7 +2,7 @@
 # This notebook will demonstrate how to convert between various reference frames. It will also show how to use SPICE.jl to access JPL ephemeris data.
 
 @time using ThreeBodyProblem
-@time using OrdinaryDiffEq
+@time using DifferentialEquations.OrdinaryDiffEq
 @time using LinearAlgebra
 @time using Plots
 @time using SPICE

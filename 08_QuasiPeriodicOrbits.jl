@@ -3,7 +3,7 @@
 
 # Before we start, let's import the required packages.
 @time using ThreeBodyProblem # CR3BP systems, equations of motion, plotting recipes, differential corrector
-@time using OrdinaryDiffEq # For computing solutions to ODEs
+@time using DifferentialEquations.OrdinaryDiffEq # For computing solutions to ODEs
 @time using LinearAlgebra # For linear algebra computation
 @time using Plots # import the Plots package
 
@@ -26,7 +26,7 @@ surface(torus(), lims=(-15,15), colorbar=false) # plot a torus
 # Define the Saturn/Enceladus CR3BP system
 sys = saturn_enceladus();
 
-# Initial Conditions of the halo orbit (obtained from https://ssd.jpl.nasa.gov/tools/periodic_orbits.html)
+# Initial condition of the halo orbit (obtained from https://ssd.jpl.nasa.gov/tools/periodic_orbits.html)
 rv₀ = [ 1.002850044069033
                         0
         0.004808592996246
@@ -179,7 +179,7 @@ N = 19 # Number of points on the invariant circle (THIS SHOULD BE AN ODD NUMBER!
 n = 6 # Number of dimensions of the system
 
 θ = 2π*(0:N-1)/N # Angles for the invariant circle
-α = 1e-5 # parameter to control the size of the invariant circle
+α = 1e-3 # parameter to control the size of the invariant circle
 u = [α*(cos(θ[i])*real(V[:,eig_idx]) - sin(θ[i])*imag(V[:,eig_idx])) for i in 1:N] # Initial guess for the invariant circle
 plot_u = plot(u, xlabel="X [NON]",ylabel="Y [NON]", zlabel= "Z [NON]", legend=true,label="u",title="Approximate Invariant Circle",linecolor=:blue, marker=:x); # Plot the invariant circle
 scatter!(plot_u, [u[1][1]],[u[1][2]],[u[1][3]],label="u[1]",shape=:o,markercolor=:blue) # Plot an "x" on the first point of the invariant circle
@@ -606,6 +606,44 @@ function add_state_constraints(J, dγ, u; constraints=[])
    return J, dγ
 end
 
+
+"""
+   add_phase_constraints!(J, dγ, u, rv₀, u₀, T₀, ρ₀, N, sys)
+
+Appends the phase constraints for the invariant circle
+"""
+function add_phase_constraints(J, dγ, u, rv₀, u₀, T₀, ρ₀, N, sys)
+   n = length(rv₀)
+   # Phase constraints
+   D, k, θ = fourier_operator(N) # Compute the fast fourier transform matrix
+   C0_tilde = D*reduce(vcat,u₀') # convert to an Nx6 matrix
+   ∂u₀_∂θ₁ = im.*exp.(im.*θ*k')*Diagonal(k)*C0_tilde # Derivative of the initial invariant circle with respect to θ₁
+   if maximum(imag(∂u₀_∂θ₁)) > eps() # If the derivative is complex, then we have a problem
+      error("The derivative of the initial invariant circle with respect to θ₁ is complex")
+   end
+   ∂u₀_∂θ₁ = real(∂u₀_∂θ₁) # Enforce that the derivative is real
+   
+   U̇₀ = zeros(N,n)
+   for i = 1:N
+      U̇₀[i,:] = CR3BPdynamics(rv₀ + u₀[i],sys,0)
+   end
+   ∂u₀_∂θ₀ = T₀/2π .* (U̇₀ - ρ₀/T₀.*∂u₀_∂θ₁) # Derivative of the initial invariant circle with respect to θ₀
+   
+   ∂u₀_∂θ₀ = reshape(∂u₀_∂θ₀',1,n*N) # Convert to a row vector
+   ∂u₀_∂θ₁ = reshape(∂u₀_∂θ₁',1,n*N) # Convert to a row vector
+
+   J = [J;        # Add the phase constraints to the Jacobian
+   ∂u₀_∂θ₀ 0 0;
+   ∂u₀_∂θ₁ 0 0]
+
+   append!(dγ,∂u₀_∂θ₀*reduce(vcat,u)) # Add the first phase constraint to the error vector
+   append!(dγ,∂u₀_∂θ₁*reduce(vcat,u)) # Add the second phase constraint to the error vector
+
+   return J, dγ
+end
+
+
+
 """
    differential_corrector_QPO(sys::System, rv₀, u₀, T₀, ρ₀; max_iter=10, plot_on=false, ϵ=1e-6, constraint::Symbol=:C)
 
@@ -633,6 +671,8 @@ function differential_corrector_QPO(sys::System, rv₀, u₀, T₀, ρ₀; max_i
    # while err > ϵ
    R, _, _, ∂R_∂ρ = rotation_operator(ρ,N) # ∂R_∂ρ is the fourth output from the rotation_operator function
    
+   J = zeros(n*N+4,n*N+3) # Initialize the Jacobian to be a matrix of zeros
+
    for _ in 1:max_iter
       # First we perform the stroboscopic mapping
       uTR, C, qpo, UT = strob_map(rv₀, u, T, ρ, sys) # uTR is the invariant circle after the stroboscopic map
@@ -706,7 +746,8 @@ function differential_corrector_QPO(sys::System, rv₀, u₀, T₀, ρ₀; max_i
 
    end
 
-   return u, T, ρ, C, us, uTRs, Cs, qpo
+   _,_,V = svd(J)
+   return u, T, ρ, C, us, uTRs, Cs, qpo, V[:,end]
 end
 
 # If we run the differential_corrector_QPO code, we should get the same result.
@@ -717,6 +758,37 @@ plot!(plot_qpo, qpo, idxs=(1,2,3), xlabel="x [NON]", ylabel="y [NON]", zlabel="z
 ### Let's try making a much larger QPO
 # Approximate a new invariant circle with a larger α value
 u,ρ = invariant_circle(rv₀, T₀, N, sys; α=1e-3) # change α to 1e-3
-u, T, ρ, C, us, uTRs, Cs, qpo = differential_corrector_QPO(sys,rv₀,u,ρ,T₀,max_iter = 10);
+u, T, ρ, C, us, uTRs, Cs, qpo, Δs = differential_corrector_QPO(sys,rv₀,u,ρ,T₀,max_iter = 10, ϵ=1e-12);
+plot_qpo = plot(sphere(sys.sec.R/sys.RUNIT,[1-sys.μ,0,0]),color=:blue,legend=false)
+plot!(plot_qpo, qpo, idxs=(1,2,3), xlabel="x [NON]", ylabel="y [NON]", zlabel="z [NON]",title="QPO with α = 1e-3")
+plot_Tρ = scatter([T],[ρ],xlabel="T",ylabel="ρ")
+
+# using MAT
+using JLD2
+save("qpo4.jld2",Dict(
+   "qpo" => qpo,
+   "u" => u,
+   "T" => T,
+   "C" => C,
+   "rho" => ρ,
+   "us" => us,
+   "uTRs" => uTRs,
+   "Cs" => Cs,
+   "delta_s" => Δs
+))
+
+β = 1e-2
+
+ξ₁ = vcat(reduce(vcat,u),T,ρ) + β*Δs
+u = [ξ₁[(i-1)*n + 1:i*n] for i = 1:N]
+T = ξ₁[n*N+1]
+ρ = ξ₁[n*N+2]
+u, T, ρ, C, us, uTRs, Cs, qpo, Δξ = differential_corrector_QPO(sys,rv₀,u,ρ,T₀,max_iter = 10, ϵ=1e-12);
+plot!(plot_qpo, qpo, idxs=(1,2,3), xlabel="x [NON]", ylabel="y [NON]", zlabel="z [NON]",title="QPO with α = 1e-3")
+
+scatter!(plot_Tρ,[T],[ρ])
+
+
+qpo = load("qpo4.jld2","qpo")
 plot_qpo = plot(sphere(sys.sec.R/sys.RUNIT,[1-sys.μ,0,0]),color=:blue,legend=false)
 plot!(plot_qpo, qpo, idxs=(1,2,3), xlabel="x [NON]", ylabel="y [NON]", zlabel="z [NON]",title="QPO with α = 1e-3")

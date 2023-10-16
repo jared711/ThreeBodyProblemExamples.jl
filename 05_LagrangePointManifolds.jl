@@ -2,7 +2,7 @@
 # In this notebook, we compute the manifolds of the L1 and L2 Lagrange points in the Sun-Jupiter System.
 
 @time using ThreeBodyProblem
-@time using OrdinaryDiffEq
+@time using DifferentialEquations.OrdinaryDiffEq
 @time using Plots
 @time using LinearAlgebra
 
